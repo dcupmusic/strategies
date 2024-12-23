@@ -11,11 +11,11 @@ timeframe = '1m'
 train_start_date = '2024-06-01'
 train_end_date = '2024-08-19'
 
-# train_start_date_timestamp = jh.date_to_timestamp(train_start_date)
-# train_end_date_timestamp = jh.date_to_timestamp(train_end_date)
+train_start_date_timestamp = jh.date_to_timestamp(train_start_date)
+train_end_date_timestamp = jh.date_to_timestamp(train_end_date)
 
-# candle_data = get_candles(exchange_name, symbol, timeframe, train_start_date_timestamp, train_end_date_timestamp)
-# backtest_candles = candle_data[1]
+candle_data = get_candles(exchange_name, symbol, timeframe, train_start_date_timestamp, train_end_date_timestamp)
+backtest_candles = candle_data[1]
 
 
 class RSI_Trend(Strategy):
