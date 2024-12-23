@@ -14,7 +14,7 @@ train_end_date = '2024-08-19'
 train_start_date_timestamp = jh.date_to_timestamp(train_start_date)
 train_end_date_timestamp = jh.date_to_timestamp(train_end_date)
 
-candle_data = get_candles(exchange_name, symbol, timeframe, train_start_date_timestamp, train_end_date_timestamp)   
+candle_data = get_candles(exchange_name, symbol, timeframe, train_start_date_timestamp, train_end_date_timestamp)
 backtest_candles = candle_data[1]
 
 
@@ -32,63 +32,75 @@ class RSI_Trend(Strategy):
         return ta.rsi(self.candles, self.hp['rsi'], sequential=True)
 
     def should_long(self):
-        qty = utils.size_to_qty(self.balance, self.price, 3, fee_rate=self.fee_rate) 
+        qty = utils.size_to_qty(self.balance, self.price, 3, fee_rate=self.fee_rate)
 
         if utils.crossed(self.rsi, 35, direction="above") and qty > 0 and self.available_margin > (qty * self.price):
             return True
 
     def should_short(self):
-        return False
+        qty = utils.size_to_qty(self.balance, self.price, 3, fee_rate=self.fee_rate)
+
+        if utils.crossed(self.rsi, 65, direction="below") and qty > 0 and self.available_margin > (qty * self.price):
+            return True
+
 
     def should_cancel_entry(self):
         return False
 
     def go_long(self):
-        qty = utils.size_to_qty(self.balance, self.price, 3, fee_rate=self.fee_rate) 
+        qty = utils.size_to_qty(self.balance, self.price, 3, fee_rate=self.fee_rate)
         self.buy = qty, self.price
-        self.stop_loss = qty, (self.price * self.hp['stop_loss'])        # Willing to lose 5%
-        self.take_profit = qty, (self.price * self.hp['take_profit'])     # Take profits at 10%
+        # self.stop_loss = qty, (self.price * self.hp['stop_loss'])        # Willing to lose 5%
+        # self.take_profit = qty, (self.price * self.hp['take_profit'])     # Take profits at 10%
 
     def go_short(self):
-        pass
+        qty = utils.size_to_qty(self.balance, self.price, 3, fee_rate=self.fee_rate)
+        self.sell = qty, self.price
+        # self.stop_loss = qty, (self.price * self.hp['stop_loss'])        # Willing to lose 5%
+        # self.take_profit = qty, (self.price * self.hp['take_profit'])     # Take profits at 10%
+
 
     def update_position(self):
         if utils.crossed(self.rsi, self.hp['xparam'], direction="below") or utils.crossed(self.rsi, 10, direction="below"):
             self.liquidate()
-            
+        elif utils.crossed(self.rsi, 65, direction="below") and self.is_long:
+            self.liquidate()
+        elif utils.crossed(self.rsi, 35, direction="above") and self.is_short:
+            self.liquidate()
 
 
 
-config = {
-    'starting_balance': 10_000,
-    'fee': 0,
-    'type': 'futures',
-    'futures_leverage': 2,
-    'futures_leverage_mode': 'cross',
-    'exchange': exchange_name,
-    'warm_up_candles': 500000
-}
-routes = [
-    {'exchange': exchange_name, 'strategy': RSI_Trend, 'symbol': symbol, 'timeframe': '1h'}
-]
-extra_routes = []
-candles = {
-    jh.key(exchange_name, symbol): {
-        'exchange': exchange_name,
-        'symbol': symbol,
-        'candles': backtest_candles,
-    },
-}
 
-# execute backtest
-result = backtest(
-    config,
-    routes,
-    extra_routes,
-    candles,
-    generate_charts=True
-)
-# Print the metrics
-print(result['metrics'])
-# Print the path of the generated chart
-print(result['charts'])
+# config = {
+#     'starting_balance': 10_000,
+#     'fee': 0,
+#     'type': 'futures',
+#     'futures_leverage': 2,
+#     'futures_leverage_mode': 'cross',
+#     'exchange': exchange_name,
+#     'warm_up_candles': 500000
+# }
+# routes = [
+#     {'exchange': exchange_name, 'strategy': RSI_Trend, 'symbol': symbol, 'timeframe': '1h'}
+# ]
+# extra_routes = []
+# candles = {
+#     jh.key(exchange_name, symbol): {
+#         'exchange': exchange_name,
+#         'symbol': symbol,
+#         'candles': backtest_candles,
+#     },
+# }
+
+# # execute backtest
+# result = backtest(
+#     config,
+#     routes,
+#     extra_routes,
+#     candles,
+#     generate_charts=True
+# )
+# # Print the metrics
+# print(result['metrics'])
+# # Print the path of the generated chart
+# print(result['charts'])
