@@ -40,19 +40,19 @@ class RSI2(Strategy):
         # Open long position and use entire balance to buy
         qty = utils.size_to_qty(self.balance, self.price, fee_rate=self.fee_rate)
 
-        self.buy = qty, self.price
+        self.buy = qty*5, self.price
 
     def go_short(self):
         # Open short position and use entire balance to sell
         qty = utils.size_to_qty(self.balance, self.price, fee_rate=self.fee_rate)
 
-        self.sell = qty, self.price
+        self.sell = qty*5, self.price
 
     def update_position(self):
         # Exit long position if price is above sma(5)
         if self.is_long and self.price > self.fast_sma:
             self.liquidate()
-    
+
         # Exit short position if price is below sma(5)
         if self.is_short and self.price < self.fast_sma:
             self.liquidate()
